@@ -283,6 +283,9 @@ TypeRef: TypeRef = {
             None => TypeRef::Nominal { path: p, types: vec![] },
         },
 
+    <t:Id> "?" =>
+        TypeRef::Generate(t),
+
     "dyn" <path:Path> "<" <types:Comma<TypeRefOrLifetime>> ">" =>
         TypeRef::TraitObject { <> },
 
