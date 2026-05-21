@@ -49,6 +49,7 @@ rand = { version = "0.10", default-features = false, features = [ "chacha" ] }
 default = ["lexer", "unicode", "pico-args"]
 unicode = ["regex/unicode", "regex-syntax/unicode", "lalrpop-util/unicode"]
 lexer = ["lalrpop-util/lexer", "lalrpop-util/std"]
+ast-gen = []
 
 [package.metadata.docs.rs]
 features = ["lexer"]
