@@ -243,6 +243,9 @@ pub enum TypeRef {
     // Foo or Bar ==> treated specially since macros may care
     Id(Atom),
 
+    // Foo? or Bar? that are structs/enums to be generated
+    Generate(Atom),
+
     // <N> ==> type of a nonterminal, emitted by macro expansion
     OfSymbol(SymbolKind),
 
@@ -1125,6 +1128,7 @@ impl Display for TypeRef {
             } => write!(fmt, "dyn {}<{}>", path, Sep(", ", types)),
             TypeRef::Lifetime(ref s) => write!(fmt, "{s}"),
             TypeRef::Id(ref s) => write!(fmt, "{s}"),
+            TypeRef::Generate(ref s) => write!(fmt, "{s}"),
             TypeRef::OfSymbol(ref s) => write!(fmt, "`{s}`"),
             TypeRef::Ref {
                 lifetime: None,
@@ -1184,7 +1188,8 @@ impl TypeRef {
                 types: types.iter().map(TypeRef::type_repr).collect(),
             }),
             TypeRef::Lifetime(ref id) => TypeRepr::Lifetime(id.clone()),
-            TypeRef::Id(ref id) => TypeRepr::Nominal(NominalTypeRepr {
+            TypeRef::Id(ref id)
+            | TypeRef::Generate(ref id) => TypeRepr::Nominal(NominalTypeRepr {
                 path: Path::from_id(id.clone()),
                 types: vec![],
             }),

@@ -272,7 +272,8 @@ impl MacroExpander {
                 mutable,
                 referent: Box::new(self.macro_expand_type_ref(args, referent)),
             },
-            TypeRef::Id(ref id) => match args.get(&NonterminalString(id.clone())) {
+            TypeRef::Id(ref id)
+            | TypeRef::Generate(ref id) => match args.get(&NonterminalString(id.clone())) {
                 Some(sym) => TypeRef::OfSymbol(sym.clone()),
                 None => TypeRef::Nominal {
                     path: Path::from_id(id.clone()),

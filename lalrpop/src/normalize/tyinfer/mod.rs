@@ -289,7 +289,8 @@ impl<'grammar> TypeInferencer<'grammar> {
                 }))
             }
             TypeRef::Lifetime(ref id) => Ok(TypeRepr::Lifetime(id.clone())),
-            TypeRef::Id(ref id) => Ok(TypeRepr::Nominal(NominalTypeRepr {
+            TypeRef::Id(ref id)
+            | TypeRef::Generate(ref id) => Ok(TypeRepr::Nominal(NominalTypeRepr {
                 path: Path::from_id(id.clone()),
                 types: vec![],
             })),
