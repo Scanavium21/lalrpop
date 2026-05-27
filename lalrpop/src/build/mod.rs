@@ -27,6 +27,9 @@ use std::rc::Rc;
 mod action;
 mod fake_term;
 
+#[cfg(feature = "ast-gen")]
+mod ast_gen;
+
 use self::fake_term::FakeTerminal;
 
 const LALRPOP_VERSION_HEADER: &str = concat!(
