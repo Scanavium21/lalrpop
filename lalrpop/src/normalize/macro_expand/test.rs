@@ -5,7 +5,7 @@ use super::expand_macros;
 
 #[test]
 fn test_comma() {
-    let grammar = parser::parse_grammar(
+    let mut grammar = parser::parse_grammar(
         r#"
 grammar;
     Comma<E>: Vec<E> =
@@ -17,7 +17,7 @@ grammar;
     )
     .unwrap();
 
-    let actual = expand_macros(grammar, 20).unwrap();
+    expand_macros(&mut grammar, 20).unwrap();
 
     let expected = parser::parse_grammar(
         r##"
@@ -52,12 +52,12 @@ grammar;
     )
     .unwrap();
 
-    compare(actual, expected);
+    compare(grammar, expected);
 }
 
 #[test]
 fn test_if_match() {
-    let grammar = parser::parse_grammar(
+    let mut grammar = parser::parse_grammar(
         r#"
 grammar;
     Expr<E> = {
@@ -74,7 +74,7 @@ grammar;
     )
     .unwrap();
 
-    let actual = expand_macros(grammar, 20).unwrap();
+    expand_macros(&mut grammar, 20).unwrap();
 
     let expected = parser::parse_grammar(
         r#"
@@ -90,12 +90,12 @@ grammar;
     )
     .unwrap();
 
-    compare(actual, expected);
+    compare(grammar, expected);
 }
 
 #[test]
 fn test_lookahead() {
-    let grammar = parser::parse_grammar(
+    let mut grammar = parser::parse_grammar(
         r#"
         grammar;
         Expr = @L;
@@ -103,7 +103,7 @@ fn test_lookahead() {
     )
     .unwrap();
 
-    let actual = expand_macros(grammar, 20).unwrap();
+    expand_macros(&mut grammar, 20).unwrap();
 
     let expected = parser::parse_grammar(
         r#"
@@ -114,12 +114,12 @@ fn test_lookahead() {
     )
     .unwrap();
 
-    compare(actual, expected);
+    compare(grammar, expected);
 }
 
 #[test]
 fn test_excessive_recursion() {
-    let grammar = parser::parse_grammar(
+    let mut grammar = parser::parse_grammar(
         r#"
         grammar;
         A<I> = { "x" I "y" I "z", A<("." I)> }
@@ -128,9 +128,9 @@ fn test_excessive_recursion() {
     )
     .unwrap();
 
-    assert!(expand_macros(grammar, 20).is_err());
+    assert!(expand_macros(&mut grammar, 20).is_err());
 
-    let grammar2 = parser::parse_grammar(
+    let mut grammar = parser::parse_grammar(
         r#"
          grammar;
          A<I> = { "a" B<("." I)> };
@@ -141,7 +141,7 @@ fn test_excessive_recursion() {
     )
     .unwrap();
 
-    assert!(expand_macros(grammar2.clone(), 2).is_err());
+    assert!(expand_macros(&mut grammar.clone(), 2).is_err());
 
-    assert!(expand_macros(grammar2, 3).is_ok());
+    assert!(expand_macros(&mut grammar, 3).is_ok());
 }

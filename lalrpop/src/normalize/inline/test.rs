@@ -8,8 +8,8 @@ use string_cache::DefaultAtom as Atom;
 use super::inline;
 
 fn inlined_grammar(text: &str) -> NormResult<Grammar> {
-    let g = parser::parse_grammar(text).unwrap();
-    let g = normalize::lower_helper(&Session::test(), g, true).unwrap();
+    let mut g = parser::parse_grammar(text).unwrap();
+    let g = normalize::lower_helper(&Session::test(), &mut g, true).unwrap();
     inline(g)
 }
 

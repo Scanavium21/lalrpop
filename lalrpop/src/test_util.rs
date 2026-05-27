@@ -54,8 +54,8 @@ pub fn compare<D: Debug, E: Debug>(actual: D, expected: E) {
 }
 
 pub fn normalized_grammar(s: &str) -> r::Grammar {
-    crate::normalize::normalize_without_validating(crate::parser::parse_grammar(s).unwrap())
-        .unwrap()
+    let mut grammar = crate::parser::parse_grammar(s).unwrap();
+    crate::normalize::normalize_without_validating(&mut grammar).unwrap()
 }
 
 pub fn check_norm_err(expected_err: &str, span: &str, err: NormError) {

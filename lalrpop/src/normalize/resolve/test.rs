@@ -14,8 +14,8 @@ fn check_err(expected_err: &str, grammar: &str) {
 
     assert!(start_index <= end_index);
 
-    let parsed_grammar = parser::parse_grammar(&grammar).unwrap();
-    match super::resolve(parsed_grammar) {
+    let mut parsed_grammar = parser::parse_grammar(&grammar).unwrap();
+    match super::resolve(&mut parsed_grammar) {
         Ok(_) => {
             panic!("expected error for grammar");
         }

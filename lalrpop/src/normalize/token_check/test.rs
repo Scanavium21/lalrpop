@@ -6,9 +6,10 @@ use crate::parser;
 use crate::test_util;
 
 fn validate_grammar(grammar: &str) -> NormResult<Grammar> {
-    let parsed_grammar = parser::parse_grammar(grammar).expect("parse grammar");
-    let parsed_grammar = resolve(parsed_grammar).expect("resolve");
-    super::validate(parsed_grammar)
+    let mut parsed_grammar = parser::parse_grammar(grammar).expect("parse grammar");
+    resolve(&mut parsed_grammar).expect("resolve");
+    super::validate(&mut parsed_grammar)?;
+    Ok(parsed_grammar)
 }
 
 fn check_err(expected_err: &str, grammar: &str, span: &str) {

@@ -1,4 +1,3 @@
-use crate::normalize::NormResult;
 use crate::parser;
 use crate::session::Session;
 use crate::test_util::compare;
@@ -7,7 +6,7 @@ use super::remove_disabled_decls;
 
 #[test]
 fn cfg_attr() {
-    let grammar = parser::parse_grammar(
+    let mut grammar = parser::parse_grammar(
         r#"grammar;
 A = ();
 #[cfg(feature = "feat1")]
@@ -59,10 +58,10 @@ F = ();
         ..Default::default()
     };
 
-    let mut grammar = remove_disabled_decls(&session, grammar);
+    let result = remove_disabled_decls(&session, &mut grammar);
 
     // remove attributes to compare with expected
-    if let Ok(grammar) = &mut grammar {
+    if result.is_ok() {
         grammar.items.iter_mut().for_each(|item| {
             if let super::GrammarItem::Nonterminal(nt) = item {
                 nt.attributes.clear()
@@ -70,5 +69,5 @@ F = ();
         })
     };
 
-    compare(grammar, NormResult::Ok(expected));
+    compare(grammar, expected);
 }

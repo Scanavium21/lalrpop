@@ -12,9 +12,9 @@ fn type_repr(s: &str) -> TypeRepr {
 }
 
 fn compare(g1: &str, expected: Vec<(&'static str, &'static str)>) {
-    let grammar = parser::parse_grammar(g1).unwrap();
-    let grammar = expand_macros(grammar, 20).unwrap();
-    let grammar = token_check::validate(grammar).unwrap();
+    let mut grammar = parser::parse_grammar(g1).unwrap();
+    expand_macros(&mut grammar, 20).unwrap();
+    token_check::validate(&mut grammar).unwrap();
     let types = infer_types(&grammar).unwrap();
 
     println!("types table: {types:?}");
@@ -43,7 +43,7 @@ grammar;
 
 #[test]
 fn test_cycle_direct() {
-    let grammar = parser::parse_grammar(
+    let mut grammar = parser::parse_grammar(
         r#"
 grammar;
     extern { enum Tok { "Hi" => Hi(..), "Ho" => Ho(..) } }
@@ -56,13 +56,13 @@ grammar;
     )
     .unwrap();
 
-    let actual = expand_macros(grammar, 20).unwrap();
-    assert!(infer_types(&actual).is_err());
+    expand_macros(&mut grammar, 20).unwrap();
+    assert!(infer_types(&grammar).is_err());
 }
 
 #[test]
 fn test_cycle_indirect() {
-    let grammar = parser::parse_grammar(
+    let mut grammar = parser::parse_grammar(
         r#"
 grammar;
     extern { enum Tok { } }
@@ -74,8 +74,8 @@ grammar;
     )
     .unwrap();
 
-    let actual = expand_macros(grammar, 20).unwrap();
-    assert!(infer_types(&actual).is_err());
+    expand_macros(&mut grammar, 20).unwrap();
+    assert!(infer_types(&grammar).is_err());
 }
 
 #[test]
@@ -184,7 +184,7 @@ grammar;
 
 #[test]
 fn test_inconsistent_action() {
-    let grammar = parser::parse_grammar(
+    let mut grammar = parser::parse_grammar(
         r#"
 grammar;
     extern { enum Tok { "+" => .., "foo" => .., "bar" => .. } }
@@ -202,8 +202,8 @@ grammar;
     )
     .unwrap();
 
-    let actual = expand_macros(grammar, 20).unwrap();
-    assert!(infer_types(&actual).is_err());
+    expand_macros(&mut grammar, 20).unwrap();
+    assert!(infer_types(&grammar).is_err());
 }
 
 #[test]
@@ -245,7 +245,7 @@ grammar;
 
 #[test]
 fn test_tuple_mismatch() {
-    let grammar = parser::parse_grammar(
+    let mut grammar = parser::parse_grammar(
         r#"
 grammar;
     extern { enum Tok { "a" => .., "b" => .., "c" => .. } }
@@ -259,7 +259,7 @@ grammar;
     )
     .unwrap();
 
-    let actual = expand_macros(grammar, 20).unwrap();
-    let types = infer_types(&actual);
+    expand_macros(&mut grammar, 20).unwrap();
+    let types = infer_types(&grammar);
     assert!(types.is_err());
 }

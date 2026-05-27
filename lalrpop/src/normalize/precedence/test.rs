@@ -6,7 +6,7 @@ use super::resolve::resolve;
 
 #[test]
 fn multilevel() {
-    let grammar = parser::parse_grammar(
+    let mut grammar = parser::parse_grammar(
         r#"
 grammar;
     Expr: u32 = {
@@ -27,7 +27,7 @@ grammar;
     )
     .unwrap();
 
-    let expected = parser::parse_grammar(
+    let mut expected = parser::parse_grammar(
         r#"
 grammar;
     Expr1: u32 = {
@@ -51,12 +51,13 @@ grammar;
     )
     .unwrap();
 
-    compare(expand_precedence(grammar), resolve(expected));
+    compare(expand_precedence(&mut grammar), resolve(&mut expected));
+    compare(grammar, expected);
 }
 
 #[test]
 fn with_assoc() {
-    let grammar = parser::parse_grammar(
+    let mut grammar = parser::parse_grammar(
         r#"
 grammar;
     Expr: u32 = {
@@ -92,7 +93,7 @@ grammar;
     )
     .unwrap();
 
-    let expected = parser::parse_grammar(
+    let mut expected = parser::parse_grammar(
         r#"
 grammar;
     Expr1: u32 = {
@@ -119,12 +120,13 @@ grammar;
     )
     .unwrap();
 
-    compare(expand_precedence(grammar), resolve(expected));
+    compare(expand_precedence(&mut grammar), resolve(&mut expected));
+    compare(grammar, expected);
 }
 
 #[test]
 fn non_consecutive_levels() {
-    let grammar = parser::parse_grammar(
+    let mut grammar = parser::parse_grammar(
         r#"
 grammar;
     Expr: u32 = {
@@ -160,7 +162,7 @@ grammar;
     )
     .unwrap();
 
-    let expected = parser::parse_grammar(
+    let mut expected = parser::parse_grammar(
         r#"
 grammar;
     Expr0: u32 = {
@@ -187,12 +189,13 @@ grammar;
     )
     .unwrap();
 
-    compare(expand_precedence(grammar), resolve(expected));
+    compare(expand_precedence(&mut grammar), resolve(&mut expected));
+    compare(grammar, expected);
 }
 
 #[test]
 fn macros() {
-    let grammar = parser::parse_grammar(
+    let mut grammar = parser::parse_grammar(
         r#"
 grammar;
     Expr: u32 = {
@@ -216,7 +219,7 @@ grammar;
     )
     .unwrap();
 
-    let expected = parser::parse_grammar(
+    let mut expected = parser::parse_grammar(
         r#"
 grammar;
     Expr1: u32 = {
@@ -243,12 +246,13 @@ grammar;
     )
     .unwrap();
 
-    compare(expand_precedence(grammar), resolve(expected));
+    compare(expand_precedence(&mut grammar), resolve(&mut expected));
+    compare(grammar, expected);
 }
 
 #[test]
 fn calculator() {
-    let grammar = parser::parse_grammar(
+    let mut grammar = parser::parse_grammar(
         r#"
 grammar;
 
@@ -273,7 +277,7 @@ Num: i32 = {
     )
     .unwrap();
 
-    let expected = parser::parse_grammar(
+    let mut expected = parser::parse_grammar(
         r#"
 grammar;
 
@@ -301,5 +305,6 @@ grammar;
     )
     .unwrap();
 
-    compare(expand_precedence(grammar), resolve(expected));
+    compare(expand_precedence(&mut grammar), resolve(&mut expected));
+    compare(grammar, expected);
 }
