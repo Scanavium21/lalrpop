@@ -16,8 +16,8 @@ use string_cache::DefaultAtom as Atom;
 
 use super::cond_comp::cfg_active;
 
-pub fn lower(session: &Session, grammar: pt::Grammar, types: r::Types) -> NormResult<r::Grammar> {
-    let state = LowerState::new(session, types, &grammar);
+pub fn lower(session: &Session, grammar: &mut pt::Grammar, types: r::Types) -> NormResult<r::Grammar> {
+    let state = LowerState::new(session, types, grammar);
     state.lower(session, grammar)
 }
 
@@ -46,7 +46,7 @@ impl<'s> LowerState<'s> {
         }
     }
 
-    fn lower(mut self, session: &Session, grammar: pt::Grammar) -> NormResult<r::Grammar> {
+    fn lower(mut self, session: &Session, grammar: &pt::Grammar) -> NormResult<r::Grammar> {
         let start_symbols = self.synthesize_start_symbols(&grammar)?;
 
         let mut uses = vec![];
@@ -55,10 +55,10 @@ impl<'s> LowerState<'s> {
             ids: vec![Atom::from("Token")],
         };
 
-        for item in grammar.items {
+        for item in &grammar.items {
             match item {
                 pt::GrammarItem::Use(data) => {
-                    uses.push(data);
+                    uses.push(data.clone());
                 }
 
                 pt::GrammarItem::MatchToken(_) => {
@@ -103,11 +103,11 @@ impl<'s> LowerState<'s> {
                                 MatchMapping::Skip => None,
                             },
                         ));
-                    self.intern_token = Some(data);
+                    self.intern_token = Some(data.clone());
                 }
 
                 pt::GrammarItem::ExternToken(data) => {
-                    if let Some(enum_token) = data.enum_token {
+                    if let Some(enum_token) = &data.enum_token {
                         self.conversions.extend(
                             enum_token
                                 .conversions
@@ -127,12 +127,12 @@ impl<'s> LowerState<'s> {
                     let nt_name = &nt.name;
                     let productions: Vec<_> = nt
                         .alternatives
-                        .into_iter()
+                        .iter()
                         .map(|alt| {
                             let nt_type = self.types.nonterminal_type(nt_name).clone();
                             let symbols = self.symbols(&alt.expr.symbols);
 
-                            self.action_kind(nt_type, &alt.expr, &symbols, alt.action)
+                            self.action_kind(nt_type, &alt.expr, &symbols, alt.action.clone())
                                 .map(|action| r::Production {
                                     nonterminal: nt_name.clone(),
                                     span: alt.span,
@@ -145,7 +145,7 @@ impl<'s> LowerState<'s> {
                         nt_name.clone(),
                         r::NonterminalData {
                             visibility: nt.visibility.clone(),
-                            attributes: nt.attributes,
+                            attributes: nt.attributes.clone(),
                             span: nt.span,
                             productions,
                         },
@@ -201,7 +201,7 @@ impl<'s> LowerState<'s> {
             nonterminals: self.nonterminals,
             conversions: self.conversions.into_iter().collect(),
             types: self.types,
-            type_parameters: grammar.type_parameters,
+            type_parameters: grammar.type_parameters.clone(),
             parameters,
             where_clauses,
             algorithm,
@@ -210,7 +210,7 @@ impl<'s> LowerState<'s> {
                 all: all_terminals,
                 bits: terminal_bits,
             },
-            module_attributes: grammar.module_attributes,
+            module_attributes: grammar.module_attributes.clone(),
         })
     }
 

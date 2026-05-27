@@ -18,7 +18,7 @@ use string_cache::DefaultAtom as Atom;
 #[cfg(test)]
 mod test;
 
-pub fn validate(mut grammar: Grammar) -> NormResult<Grammar> {
+pub fn validate(mut grammar: &mut Grammar) -> NormResult<()> {
     let mode = {
         let mode = if let Some(enum_token) = grammar.enum_token() {
             assert!(
@@ -59,7 +59,7 @@ pub fn validate(mut grammar: Grammar) -> NormResult<Grammar> {
         }
     }
 
-    Ok(grammar)
+    Ok(())
 }
 
 ///////////////////////////////////////////////////////////////////////////

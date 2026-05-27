@@ -9,7 +9,7 @@ use string_cache::DefaultAtom as Atom;
 #[cfg(test)]
 mod test;
 
-pub fn remove_disabled_decls(session: &Session, mut grammar: Grammar) -> NormResult<Grammar> {
+pub fn remove_disabled_decls(session: &Session, grammar: &mut Grammar) -> NormResult<()> {
     grammar.items.retain_mut(|item| match item {
         GrammarItem::ExternToken(et) => match &mut et.enum_token {
             Some(EnumToken { conversions, .. }) => {
@@ -29,7 +29,7 @@ pub fn remove_disabled_decls(session: &Session, mut grammar: Grammar) -> NormRes
         }
         _ => true,
     });
-    Ok(grammar)
+    Ok(())
 }
 
 pub fn cfg_active(session: &Session, attrs: &[Attribute]) -> bool {

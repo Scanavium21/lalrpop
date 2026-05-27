@@ -10,9 +10,8 @@ use string_cache::DefaultAtom as Atom;
 #[cfg(test)]
 mod test;
 
-pub fn resolve(mut grammar: Grammar) -> NormResult<Grammar> {
-    resolve_in_place(&mut grammar)?;
-    Ok(grammar)
+pub fn resolve(mut grammar: &mut Grammar) -> NormResult<()> {
+    resolve_in_place(&mut grammar)
 }
 
 fn resolve_in_place(grammar: &mut Grammar) -> NormResult<()> {

@@ -16,13 +16,11 @@ use string_cache::DefaultAtom as Atom;
 #[cfg(test)]
 mod test;
 
-pub fn expand_macros(input: Grammar, recursion_limit: u16) -> NormResult<Grammar> {
-    let input = resolve::resolve(input)?;
-
-    let items = input.items;
+pub fn expand_macros(input: &mut Grammar, recursion_limit: u16) -> NormResult<()> {
+    resolve::resolve(input)?;
 
     let (macro_defs, mut items): (Vec<_>, Vec<_>) =
-        items.into_iter().partition(GrammarItem::is_macro_def);
+        input.items.drain(..).partition(GrammarItem::is_macro_def);
 
     let macro_defs: HashMap<_, _> = macro_defs
         .into_iter()
@@ -35,7 +33,9 @@ pub fn expand_macros(input: Grammar, recursion_limit: u16) -> NormResult<Grammar
     let mut expander = MacroExpander::new(macro_defs);
     expander.expand(&mut items, recursion_limit)?;
 
-    Ok(Grammar { items, ..input })
+    input.items = items;
+
+    Ok(())
 }
 
 struct MacroExpander {

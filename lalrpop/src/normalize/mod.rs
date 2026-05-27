@@ -23,19 +23,19 @@ macro_rules! return_err {
     }
 }
 
-pub fn normalize(session: &Session, grammar: pt::Grammar) -> NormResult<r::Grammar> {
+pub fn normalize(session: &Session, grammar: &mut pt::Grammar) -> NormResult<r::Grammar> {
     normalize_helper(session, grammar, true)
 }
 
 /// for unit tests, it is convenient to skip the validation step, and supply a dummy session
 #[cfg(test)]
-pub fn normalize_without_validating(grammar: pt::Grammar) -> NormResult<r::Grammar> {
+pub fn normalize_without_validating(grammar: &mut pt::Grammar) -> NormResult<r::Grammar> {
     normalize_helper(&Session::new(), grammar, false)
 }
 
 fn normalize_helper(
     session: &Session,
-    grammar: pt::Grammar,
+    grammar: &mut pt::Grammar,
     validate: bool,
 ) -> NormResult<r::Grammar> {
     let grammar = lower_helper(session, grammar, validate)?;
@@ -43,32 +43,32 @@ fn normalize_helper(
     Ok(grammar)
 }
 
-fn lower_helper(session: &Session, grammar: pt::Grammar, validate: bool) -> NormResult<r::Grammar> {
+fn lower_helper(session: &Session, grammar: &mut pt::Grammar, validate: bool) -> NormResult<r::Grammar> {
     profile!(
         session,
         "Grammar validation",
         if validate {
-            prevalidate::validate(&grammar)?;
+            prevalidate::validate(grammar)?;
         }
     );
-    let grammar = profile!(
+    profile!(
         session,
         "Conditional compilation",
         cond_comp::remove_disabled_decls(session, grammar)?
     );
-    let grammar = profile!(session, "Grammar resolution", resolve::resolve(grammar)?);
-    let grammar = profile!(
+    profile!(session, "Grammar resolution", resolve::resolve(grammar)?);
+    profile!(
         session,
         "Precedence expansion",
         precedence::expand_precedence(grammar)?
     );
-    let grammar = profile!(
+    profile!(
         session,
         "Macro expansion",
         macro_expand::expand_macros(grammar, session.macro_recursion_limit)?
     );
-    let grammar = profile!(session, "Token check", token_check::validate(grammar)?);
-    let types = profile!(session, "Infer types", tyinfer::infer_types(&grammar)?);
+    profile!(session, "Token check", token_check::validate(grammar)?);
+    let types = profile!(session, "Infer types", tyinfer::infer_types(grammar)?);
     let grammar = profile!(session, "Lowering", lower::lower(session, grammar, types)?);
     Ok(grammar)
 }

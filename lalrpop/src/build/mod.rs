@@ -180,8 +180,8 @@ fn process_file_into(
         // generation fails at some point, we don't leave a partial
         // file behind.
         {
-            let grammar = parse_grammar(&file_text)?;
-            let normalized_grammar = normalize_grammar(&session, &file_text, grammar)?;
+            let mut grammar = parse_grammar(&file_text)?;
+            let normalized_grammar = normalize_grammar(&session, &file_text, &mut grammar)?;
             let buffer = emit_recursive_ascent(&session, &normalized_grammar, report_file)?;
             let mut output_file = fs::File::create(rs_file)?;
             writeln!(output_file, "{LALRPOP_VERSION_HEADER}")?;
@@ -293,7 +293,7 @@ fn parse_grammar(file_text: &FileText) -> io::Result<pt::Grammar> {
         .map_err(|error| report_parse_error(file_text, error, report_error))
 }
 
-fn normalize_grammar(session: &Session, file_text: &FileText, grammar: pt::Grammar) -> io::Result<r::Grammar> {
+fn normalize_grammar(session: &Session, file_text: &FileText, grammar: &mut pt::Grammar) -> io::Result<r::Grammar> {
     match normalize::normalize(session, grammar) {
         Ok(grammar) => Ok(grammar),
         Err(error) => Err(report_error(file_text, error.span, &error.message))?,

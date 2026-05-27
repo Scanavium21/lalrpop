@@ -127,21 +127,19 @@ impl FromStr for Assoc {
 
 /// Perform precedence expansion. Rewrite rules where at least one alternative has a precedence
 /// attribute, and generate derived rules for each level of precedence.
-pub fn expand_precedence(input: Grammar) -> NormResult<Grammar> {
-    let input = resolve::resolve(input)?;
+pub fn expand_precedence(input: &mut Grammar) -> NormResult<()> {
+    resolve::resolve(input)?;
     let mut result: Vec<GrammarItem> = Vec::with_capacity(input.items.len());
 
-    for item in input.items.into_iter() {
+    for item in input.items.drain(..) {
         match item {
             GrammarItem::Nonterminal(d) if has_prec_attr(&d) => result.extend(expand_nonterm(d)?),
             item => result.push(item),
         };
     }
+    input.items = result;
 
-    Ok(Grammar {
-        items: result,
-        ..input
-    })
+    Ok(())
 }
 
 /// Determine if a rule has at least one precedence attribute.
