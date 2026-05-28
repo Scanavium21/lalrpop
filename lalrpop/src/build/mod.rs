@@ -184,8 +184,8 @@ fn process_file_into(
         // file behind.
         {
             let mut grammar = parse_grammar(&file_text)?;
-            let ast_buffer = emit_ast(&file_text, &grammar)?;
             let normalized_grammar = normalize_grammar(&session, &file_text, &mut grammar)?;
+            let ast_buffer = emit_ast(&file_text, &grammar, &normalized_grammar)?;
             let buffer = emit_recursive_ascent(&session, &normalized_grammar, report_file)?;
             let mut output_file = fs::File::create(rs_file)?;
             writeln!(output_file, "{LALRPOP_VERSION_HEADER}")?;
@@ -231,9 +231,13 @@ fn needs_rebuild(lalrpop_file: &Path, rs_file: &Path) -> io::Result<bool> {
     }
 }
 
-fn emit_ast(_file_text: &FileText, grammar: &pt::Grammar) -> io::Result<Vec<u8>> {
+fn emit_ast(
+    _file_text: &FileText,
+    grammar: &pt::Grammar,
+    _normalized_grammar: &r::Grammar,
+) -> io::Result<Vec<u8>> {
     #[cfg(feature = "ast-gen")]
-    return ast_gen::emit_ast(grammar);
+    return ast_gen::emit_ast(grammar, _normalized_grammar);
     #[cfg(not(feature = "ast-gen"))]
     {
         for item in &grammar.items {
@@ -246,10 +250,14 @@ fn emit_ast(_file_text: &FileText, grammar: &pt::Grammar) -> io::Result<Vec<u8>>
                 None => continue,
             };
             if let pt::TypeRef::Generate(_) = type_ref {
-                return Err(report_error(file_text, nonterminal.span, "AST generation feature is not enabled"));
+                return Err(report_error(
+                    _file_text,
+                    nonterminal.span,
+                    "AST generation feature is not enabled",
+                ));
             }
         }
-        return Ok(Vec::new())
+        return Ok(Vec::new());
     }
 }
 
