@@ -20,12 +20,12 @@ pub fn emit_ast(grammar: &pt::Grammar, normalized_grammar: &r::Grammar) -> std::
             _ => continue,
         };
 
-        let normalized_nonterminal = match normalized_grammar.nonterminals.get(name) {
+        let data = match normalized_grammar.nonterminals.get(name) {
             Some(data) => data,
-            None => continue,
+            None => return Err(Error::new(ErrorKind::InvalidData, format!("data for nonterminal `{name}` not found"))),
         };
 
-        for production in &normalized_nonterminal.productions {
+        for production in &data.productions {
             let action = &normalized_grammar.action_fn_defns[production.action.index()];
             let args = build_arg_map(action);
 
