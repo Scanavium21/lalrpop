@@ -16,7 +16,7 @@ pub fn emit_ast(grammar: &pt::Grammar, normalized_grammar: &r::Grammar) -> std::
         };
 
         let generate_name = match &nonterminal.type_decl {
-            Some(pt::TypeRef::Generate(name)) => name.clone(),
+            Some(pt::TypeRef::Generate(name)) => name,
             _ => continue,
         };
 
