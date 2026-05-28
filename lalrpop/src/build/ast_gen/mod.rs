@@ -1,12 +1,11 @@
-use std::io::Error;
-use std::io::ErrorKind;
+use std::io::{Error, ErrorKind, Result};
 
 use crate::collections::Map;
 use crate::grammar::parse_tree as pt;
 use crate::grammar::repr as r;
 use crate::grammar::repr::{ActionFnDefn, ActionFnDefnKind, TypeRepr};
 
-pub fn emit_ast(grammar: &pt::Grammar, normalized_grammar: &r::Grammar) -> std::io::Result<Vec<u8>> {
+pub fn emit_ast(grammar: &pt::Grammar, normalized_grammar: &r::Grammar) -> Result<Vec<u8>> {
     let mut output = Vec::new();
 
     for item in &grammar.items {
@@ -25,32 +24,7 @@ pub fn emit_ast(grammar: &pt::Grammar, normalized_grammar: &r::Grammar) -> std::
             None => return Err(Error::new(ErrorKind::InvalidData, format!("data for nonterminal `{name}` not found"))),
         };
 
-        for production in &data.productions {
-            let action = &normalized_grammar.action_fn_defns[production.action.index()];
-            let args = build_arg_map(action);
-
-            let code = match &action.kind {
-                ActionFnDefnKind::User(data) => &data.code,
-                ActionFnDefnKind::Inline(_) => {
-                    return Err(Error::new(
-                        ErrorKind::InvalidData,
-                        format!("AST generation not supported for inlined actions (`{name}`)"),
-                    ));
-                }
-                ActionFnDefnKind::Lookaround(_) => {
-                    return Err(Error::new(
-                        ErrorKind::InvalidData,
-                        format!("AST generation not supported for lookaround actions (`{name}`)"),
-                    ));
-                }
-            };
-
-            let wrapped = format!("{{ {code} }}");
-            let block = match syn::parse_str::<syn::Block>(&wrapped) {
-                Ok(block) => block,
-                Err(error) => return Err(Error::new(ErrorKind::InvalidData, format!("failed to parse action code: {error}"))),
-            };
-        }
+        infer_nonterminal_type(name, generate_name, data, normalized_grammar)?;
     }
 
     Ok(output)
@@ -65,4 +39,34 @@ fn build_arg_map(action: &ActionFnDefn) -> Map<String, TypeRepr> {
         }
     }
     map
+}
+
+fn infer_nonterminal_type(
+    name: &NonterminalString,
+    generate_name: &Atom,
+    data: &r::NonterminalData,
+    grammar: &r::Grammar,
+) -> Result<()> {
+    for production in &data.productions {
+        let action = &grammar.action_fn_defns[production.action.index()];
+        let args = build_arg_map(action);
+
+        let code = match &action.kind {
+            ActionFnDefnKind::User(user_data) => &user_data.code,
+            ActionFnDefnKind::Inline(_) => {
+                return Err(Error::new(
+                    ErrorKind::InvalidData,
+                    format!("AST generation not supported for inlined actions (`{name}`)"),
+                ));
+            }
+            ActionFnDefnKind::Lookaround(_) => {
+                return Err(Error::new(
+                    ErrorKind::InvalidData,
+                    format!("AST generation not supported for lookaround actions (`{name}`)"),
+                ));
+            }
+        };
+    }
+
+    Ok(())
 }
