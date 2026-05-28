@@ -2,6 +2,8 @@ use crate::grammar::parse_tree as pt;
 use crate::grammar::repr as r;
 
 pub fn emit_ast(grammar: &pt::Grammar, normalized_grammar: &r::Grammar) -> std::io::Result<Vec<u8>> {
+    let mut output = Vec::new();
+
     for item in &grammar.items {
         let nonterminal = match item {
             pt::GrammarItem::Nonterminal(item) => item,
@@ -19,5 +21,5 @@ pub fn emit_ast(grammar: &pt::Grammar, normalized_grammar: &r::Grammar) -> std::
         };
     }
 
-    Ok(Vec::new())
+    Ok(output)
 }
