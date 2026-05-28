@@ -10,8 +10,8 @@ pub fn emit_ast(grammar: &pt::Grammar, normalized_grammar: &r::Grammar) -> std::
     let mut output = Vec::new();
 
     for item in &grammar.items {
-        let nonterminal = match item {
-            pt::GrammarItem::Nonterminal(item) => item,
+        let (nonterminal, name) = match item {
+            pt::GrammarItem::Nonterminal(item) => (item, &item.name),
             _ => continue,
         };
 
@@ -20,7 +20,7 @@ pub fn emit_ast(grammar: &pt::Grammar, normalized_grammar: &r::Grammar) -> std::
             _ => continue,
         };
 
-        let normalized_nonterminal = match normalized_grammar.nonterminals.get(&nonterminal.name) {
+        let normalized_nonterminal = match normalized_grammar.nonterminals.get(name) {
             Some(data) => data,
             None => continue,
         };
@@ -34,13 +34,13 @@ pub fn emit_ast(grammar: &pt::Grammar, normalized_grammar: &r::Grammar) -> std::
                 ActionFnDefnKind::Inline(_) => {
                     return Err(Error::new(
                         ErrorKind::InvalidData,
-                        format!("AST generation not supported for inlined actions (`{}`)", nonterminal.name),
+                        format!("AST generation not supported for inlined actions (`{name}`)"),
                     ));
                 }
                 ActionFnDefnKind::Lookaround(_) => {
                     return Err(Error::new(
                         ErrorKind::InvalidData,
-                        format!("AST generation not supported for lookaround actions (`{}`)", nonterminal.name),
+                        format!("AST generation not supported for lookaround actions (`{name}`)"),
                     ));
                 }
             };
