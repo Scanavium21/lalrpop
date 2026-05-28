@@ -1,3 +1,6 @@
+use std::io::Error;
+use std::io::ErrorKind;
+
 use crate::collections::Map;
 use crate::grammar::parse_tree as pt;
 use crate::grammar::repr as r;
@@ -25,6 +28,28 @@ pub fn emit_ast(grammar: &pt::Grammar, normalized_grammar: &r::Grammar) -> std::
         for production in &normalized_nonterminal.productions {
             let action = &normalized_grammar.action_fn_defns[production.action.index()];
             let args = build_arg_map(action);
+
+            let code = match &action.kind {
+                ActionFnDefnKind::User(data) => &data.code,
+                ActionFnDefnKind::Inline(_) => {
+                    return Err(Error::new(
+                        ErrorKind::InvalidData,
+                        format!("AST generation not supported for inlined actions (`{}`)", nonterminal.name),
+                    ));
+                }
+                ActionFnDefnKind::Lookaround(_) => {
+                    return Err(Error::new(
+                        ErrorKind::InvalidData,
+                        format!("AST generation not supported for lookaround actions (`{}`)", nonterminal.name),
+                    ));
+                }
+            };
+
+            let wrapped = format!("{{ {code} }}");
+            let block = match syn::parse_str::<syn::Block>(&wrapped) {
+                Ok(block) => block,
+                Err(error) => return Err(Error::new(ErrorKind::InvalidData, format!("failed to parse action code: {error}"))),
+            };
         }
     }
 
